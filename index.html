@@ -88,14 +88,18 @@ const quizData = [
   { real: "vazo.jpeg", fakes: ["vazofake1.png", "vazofake2.jpg"] }
 ];
 
+// Preload images to prevent lag on GitHub Pages
+quizData.forEach(q => {
+    new Image().src = `images/${q.real}`;
+    q.fakes.forEach(f => new Image().src = `images/${f}`);
+});
+
 let questions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let playerName = "";
 let playerAge = "";
 let playerGender = "";
-let playerDept = "";
-let playerAiExp = "";
 let questionStartTime = 0;
 let totalTimeMs = 0;
 let totalSpeedBonus = 0;
