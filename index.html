@@ -88,10 +88,11 @@ const quizData = [
   { real: "vazo.jpeg", fakes: ["vazofake1.png", "vazofake2.jpg"] }
 ];
 
-// Preload images to prevent lag on GitHub Pages
+// Preload images strictly
+const allImagePaths = [];
 quizData.forEach(q => {
-    new Image().src = `images/${q.real}`;
-    q.fakes.forEach(f => new Image().src = `images/${f}`);
+    allImagePaths.push(`images/${q.real}`);
+    q.fakes.forEach(f => allImagePaths.push(`images/${f}`));
 });
 
 let questions = [];
@@ -114,6 +115,32 @@ const btnRestart = document.getElementById('btn-restart');
 const inputName = document.getElementById('player-name');
 const imageGrid = document.getElementById('image-grid');
 const finalScoreEl = document.getElementById('final-score');
+
+// Enforce strict image preloading before allowing game to start
+let loadedImages = 0;
+const totalImages = allImagePaths.length;
+btnStart.disabled = true;
+btnStart.textContent = `Yükleniyor... (%0)`;
+btnStart.classList.add('opacity-50', 'cursor-not-allowed');
+
+function checkPreloadComplete() {
+    loadedImages++;
+    const percent = Math.floor((loadedImages / totalImages) * 100);
+    if (loadedImages < totalImages) {
+        btnStart.textContent = `Yükleniyor... (%${percent})`;
+    } else {
+        btnStart.disabled = false;
+        btnStart.textContent = "Oyuna Başla";
+        btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+allImagePaths.forEach(src => {
+    const img = new Image();
+    img.onload = checkPreloadComplete;
+    img.onerror = checkPreloadComplete; // Progress even on error to avoid softlock
+    img.src = src;
+});
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -383,6 +410,17 @@ function exportAnalyticsCSV() {
     a.download = `Yapay_Zeka_Oyun_Verileri_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+}
+
+// Register Service Worker for true offline capabilities
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            console.log('ServiceWorker registration successful');
+        }).catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+        });
+    });
 }
 </script>
 </body>
