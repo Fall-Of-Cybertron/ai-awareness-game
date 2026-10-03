@@ -116,9 +116,10 @@ const inputName = document.getElementById('player-name');
 const imageGrid = document.getElementById('image-grid');
 const finalScoreEl = document.getElementById('final-score');
 
-// Enforce strict image preloading before allowing game to start
+// Enforce strict image preloading using Fetch & Blobs to guarantee instant rendering
 let loadedImages = 0;
 const totalImages = allImagePaths.length;
+const blobCache = {}; // Store raw image data in RAM
 btnStart.disabled = true;
 btnStart.textContent = `Yükleniyor... (%0)`;
 btnStart.classList.add('opacity-50', 'cursor-not-allowed');
@@ -136,10 +137,17 @@ function checkPreloadComplete() {
 }
 
 allImagePaths.forEach(src => {
-    const img = new Image();
-    img.onload = checkPreloadComplete;
-    img.onerror = checkPreloadComplete; // Progress even on error to avoid softlock
-    img.src = src;
+    fetch(src)
+        .then(response => response.blob())
+        .then(blob => {
+            blobCache[src] = URL.createObjectURL(blob);
+            checkPreloadComplete();
+        })
+        .catch(err => {
+            console.error("Failed to load", src, err);
+            blobCache[src] = src; // Fallback to network URL
+            checkPreloadComplete();
+        });
 });
 
 function shuffleArray(array) {
@@ -154,7 +162,19 @@ btnStart.addEventListener('click', startGame);
 btnRestart.addEventListener('click', () => {
     screenEnd.classList.add('hidden');
     screenStart.classList.remove('hidden');
+    
+    // Clear inputs
     inputName.value = '';
+    const ageEl = document.getElementById('player-age');
+    if (ageEl) ageEl.value = '';
+    
+    // Reset gender buttons
+    selectedGender = "";
+    btnGenderKadin.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-400');
+    btnGenderKadin.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-600');
+    btnGenderErkek.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-400');
+    btnGenderErkek.classList.add('bg-slate-900', 'text-slate-400', 'border-slate-600');
+
     inputName.focus();
 });
 
@@ -253,7 +273,8 @@ function loadQuestion() {
         imgWrapper.className = cardClass;
         
         const img = document.createElement('img');
-        img.src = `images/${opt.src}`;
+        const imgSrc = `images/${opt.src}`;
+        img.src = blobCache[imgSrc] || imgSrc; // Use instant RAM blob
         
         // Custom object-position logic:
         // For 'saat' images, keep right/center visible. For everything else, keep left/center visible.
