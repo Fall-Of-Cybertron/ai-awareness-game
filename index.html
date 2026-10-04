@@ -70,29 +70,88 @@
     <!-- Screen 3: End -->
     <div id="screen-end" class="flex-1 flex flex-col items-center justify-center p-8 text-center hidden">
         <h2 class="text-5xl font-bold mb-6 text-indigo-400">Oyun Bitti!</h2>
-        <div class="text-9xl font-black text-indigo-500 mb-10 drop-shadow-lg" id="final-score">0</div>
+        <div class="text-6xl font-bold text-slate-300 mb-10 drop-shadow-lg" id="final-stats">8 sorudan 5'ini doğru bildin!</div>
         <button id="btn-restart" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full text-2xl transition-colors shadow-lg">Tekrar Oyna</button>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="fixed inset-0 flex items-center justify-center bg-slate-900/90 z-50 hidden opacity-0 transition-opacity duration-300 backdrop-blur-sm">
+        <div class="bg-slate-800 border-l-8 rounded-r-2xl p-10 max-w-4xl text-left shadow-2xl scale-95 transition-transform duration-300 flex flex-col gap-4" id="feedback-box">
+            <div class="flex items-center gap-4 mb-2">
+                <span id="feedback-icon" class="text-5xl"></span>
+                <h3 id="feedback-title" class="text-4xl font-black text-white"></h3>
+            </div>
+            <p id="feedback-text" class="text-3xl text-slate-300 leading-relaxed font-medium"></p>
+        </div>
     </div>
 
 </div>
 
 <script>
 const quizData = [
-  { real: "belediye.jpg", fakes: ["belediyefake1.png", "belediyefake2.png"] },
-  { real: "giris.jpg", fakes: ["girisfake1.png", "girisfake2.png"] },
-  { real: "otogar.jpg", fakes: ["otogarfake1.png", "otogarfake2.png"] },
-  { real: "saat.jpg", fakes: ["saatfake1.jpg", "saatfake2.png", "saatfake3.jpg"] },
-  { real: "sera.jpeg", fakes: ["serafake1.png", "serafake2.png"] },
-  { real: "tren.jpg", fakes: ["trenfake1.png"] },
-  { real: "vali.jpg", fakes: ["valifake1.png", "valifake2.png"] },
-  { real: "vazo.jpeg", fakes: ["vazofake1.png", "vazofake2.jpg"] }
+  { 
+      real: "belediye.jpg", 
+      fakes: [
+          { src: "belediyefake1.png", reason: "Yapay zeka hatası: İnsanların ayaklarında ve arka plandaki kamyonet lastiklerinde yapısal erimeler ve renk bozulmaları görülmektedir." },
+          { src: "belediyefake2.png", reason: "Yapay zeka hatası: Kişilerin el ve ayak anatomilerinde (fazla parmak veya iç içe geçmiş uzuvlar) belirgin üretim hataları mevcuttur." }
+      ] 
+  },
+  { 
+      real: "giris.jpg", 
+      fakes: [
+          { src: "girisfake1.png", reason: "Yapay zeka hatası: Sol taraftaki mavi kulübenin üzerinde ve çevresindeki sütunlarda doku ve perspektif kaymaları bulunmaktadır." },
+          { src: "girisfake2.png", reason: "Yapay zeka hatası: Tabelada alanla ilişkisiz, bağlam dışı bir metin (Kütahya Belediyesi) üretilmiştir." }
+      ] 
+  },
+  { 
+      real: "otogar.jpg", 
+      fakes: [
+          { src: "otogarfake1.png", reason: "Yapay zeka hatası: Otobüs üzerindeki marka isimleri hatalı üretilmiş olup, tabeladaki harfler elektrik direğiyle mantıksız şekilde iç içe geçmiştir." },
+          { src: "otogarfake2.png", reason: "Yapay zeka hatası: Sütun mimarisinde renkler birbirine karışmış ve arka plandaki metinler anlamsız karakterlere dönüşmüştür." }
+      ] 
+  },
+  { 
+      real: "saat.jpg", 
+      fakes: [
+          { src: "saatfake1.jpg", reason: "Yapay zeka hatası: Arka plandaki elektrik direği yapısal olarak eksik ve mantıksız bir formda çizilmiştir." },
+          { src: "saatfake2.png", reason: "Yapay zeka hatası: Elektrik direği ağaçla iç içe geçmiş, saatin üzerinde ise okunaksız ve birden fazla anlamsız kadran üretilmiştir." },
+          { src: "saatfake3.jpg", reason: "Yapay zeka hatası: Direk ve ağaç dokuları birbirine karışmış, saat kadranındaki sayılar ve yapı tamamen deforme olmuştur." }
+      ] 
+  },
+  { 
+      real: "sera.jpeg", 
+      fakes: [
+          { src: "serafake1.png", reason: "Yapay zeka hatası: Turuncu dubalar fizik kurallarına aykırı şekilde havada durmakta ve logolardaki yazılar anlamsız metinlerden oluşmaktadır." },
+          { src: "serafake2.png", reason: "Yapay zeka hatası: Havadaki dubalarla birlikte tabela fontlarında tutarsızlıklar ve markalarda anlamsız yapay zeka halüsinasyonları mevcuttur." }
+      ] 
+  },
+  { 
+      real: "tren.jpg", 
+      fakes: [
+          { src: "trenfake1.png", reason: "Yapay zeka hatası: Giriş kapısındaki sütunlarda ve insan siluetlerinin alt kısımlarında yapısal erimeler (doku bozulmaları) göze çarpmaktadır." }
+      ] 
+  },
+  { 
+      real: "vali.jpg", 
+      fakes: [
+          { src: "valifake1.png", reason: "Yapay zeka hatası: Kaldırım taşlarındaki perspektif kaybolmuş ve zemin dokusunda mantıksız düzleşmeler oluşmuştur." },
+          { src: "valifake2.png", reason: "Yapay zeka hatası: Kaldırım dokusunun aniden kaybolmasının yanı sıra, bayrak direklerinde olağandışı renk bozulmaları görülmektedir." }
+      ] 
+  },
+  { 
+      real: "vazo.jpeg", 
+      fakes: [
+          { src: "vazofake1.png", reason: "Yapay zeka hatası: Vazonun alt kısmında dokular birbirine girmiş olup, arka plandaki bina kapıları ölçek olarak gerçek dışı büyüklükte üretilmiştir." },
+          { src: "vazofake2.jpg", reason: "Yapay zeka hatası: Sol taraftaki ağaç dalları doğal yapısından uzak, asimetrik ve mantıksız bir formda şekillenmiştir." }
+      ] 
+  }
 ];
 
 // Preload images strictly
 const allImagePaths = [];
 quizData.forEach(q => {
     allImagePaths.push(`images/${q.real}`);
-    q.fakes.forEach(f => allImagePaths.push(`images/${f}`));
+    q.fakes.forEach(f => allImagePaths.push(`images/${f.src}`));
 });
 
 let questions = [];
@@ -237,8 +296,8 @@ function loadQuestion() {
     const fakeCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
     selectedFakes = selectedFakes.slice(0, fakeCount);
 
-    const options = [{ src: q.real, isReal: true }];
-    selectedFakes.forEach(f => options.push({ src: f, isReal: false }));
+    const options = [{ src: q.real, isReal: true, reason: "Tebrikler, gerçek görseli buldunuz! Diğer seçeneklerde yapay zekanın ürettiği anatomik ve mantıksal hatalar mevcuttu." }];
+    selectedFakes.forEach(f => options.push({ src: f.src, isReal: false, reason: f.reason }));
     shuffleArray(options);
 
     // Adjust container based on number of options
@@ -252,20 +311,12 @@ function loadQuestion() {
         let cardClass = 'image-card relative rounded-3xl overflow-hidden border-8 border-transparent flex justify-center items-center shadow-2xl';
         
         if (options.length === 3) {
-            // 2:1 aspect ratio allows them to be very wide (filling the empty sides)
-            // without becoming so tall that the 2nd row overflows the screen.
-            // It will only crop the sky and road very slightly.
             cardClass += ' aspect-[2/1] w-[46%]';
             if (index === 1) {
                 cardClass += ' anim-top-down';
             } else {
                 cardClass += ' anim-bottom-up';
             }
-        } else if (options.length === 2) {
-            // For 2 items, abandon aspect-video. Force them to be 48% wide and 75vh tall.
-            // This will make them almost square, filling the vertical empty space entirely.
-            // object-cover will crop the left/right sides slightly to achieve this massive zoom.
-            cardClass += ' w-[48%] h-[75vh] anim-center';
         } else {
             cardClass += ' w-[48%] h-[75vh] anim-center';
         }
@@ -276,8 +327,6 @@ function loadQuestion() {
         const imgSrc = `images/${opt.src}`;
         img.src = blobCache[imgSrc] || imgSrc; // Use instant RAM blob
         
-        // Custom object-position logic:
-        // For 'saat' images, keep right/center visible. For everything else, keep left/center visible.
         if (opt.src.startsWith('saat')) {
             img.className = 'object-cover object-right w-full h-full';
         } else {
@@ -285,7 +334,6 @@ function loadQuestion() {
         }
         
         img.alt = 'Seçenek';
-        // Add a fallback in case image is missing during development
         img.onerror = function() {
             this.onerror = null;
             this.parentElement.innerHTML = `<div class="text-gray-400 p-10 text-center border-2 border-dashed border-gray-300 w-full h-full flex items-center justify-center">Görsel Eksik:<br>${opt.src}</div>`;
@@ -293,7 +341,7 @@ function loadQuestion() {
         
         imgWrapper.appendChild(img);
         
-        imgWrapper.addEventListener('click', () => handleAnswer(imgWrapper, opt.isReal));
+        imgWrapper.addEventListener('click', () => handleAnswer(imgWrapper, opt.isReal, opt.reason));
         imageGrid.appendChild(imgWrapper);
     });
     
@@ -301,7 +349,7 @@ function loadQuestion() {
     questionStartTime = Date.now();
 }
 
-function handleAnswer(element, isReal) {
+function handleAnswer(element, isReal, reason) {
     if (isAnswered) return;
     isAnswered = true;
 
@@ -317,7 +365,6 @@ function handleAnswer(element, isReal) {
         score += 100; // Base 100 points
         correctCount++;
         
-        // Speed bonus: 0 to 100 points based on speed (max bonus under 2 seconds, scales down to 0 at 15 seconds)
         let bonus = 0;
         if (timeTakenMs <= 2000) {
             bonus = 100;
@@ -339,14 +386,51 @@ function handleAnswer(element, isReal) {
         });
     }
 
+    // Show feedback modal
+    const modal = document.getElementById('feedback-modal');
+    const modalBox = document.getElementById('feedback-box');
+    const modalIcon = document.getElementById('feedback-icon');
+    const modalTitle = document.getElementById('feedback-title');
+    const modalText = document.getElementById('feedback-text');
+
+    if (isReal) {
+        modalBox.className = "bg-slate-800 border-l-8 border-green-500 rounded-r-2xl p-10 max-w-4xl text-left shadow-2xl scale-95 transition-transform duration-300 flex flex-col gap-4";
+        modalIcon.textContent = "✅";
+        modalTitle.textContent = "Doğru!";
+        modalTitle.className = "text-4xl font-black text-green-400";
+    } else {
+        modalBox.className = "bg-slate-800 border-l-8 border-red-500 rounded-r-2xl p-10 max-w-4xl text-left shadow-2xl scale-95 transition-transform duration-300 flex flex-col gap-4";
+        modalIcon.textContent = "❌";
+        modalTitle.textContent = "Yanlış!";
+        modalTitle.className = "text-4xl font-black text-red-400";
+    }
+
+    modalText.textContent = reason;
+    
+    modal.classList.remove('hidden');
+    // slight delay for opacity transition
     setTimeout(() => {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.length) {
-            loadQuestion();
-        } else {
-            endGame();
-        }
-    }, 2000); // Wait 2 seconds before next question
+        modal.classList.remove('opacity-0');
+        modalBox.classList.remove('scale-95');
+        modalBox.classList.add('scale-100');
+    }, 10);
+
+    setTimeout(() => {
+        // Hide modal
+        modal.classList.add('opacity-0');
+        modalBox.classList.remove('scale-100');
+        modalBox.classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                endGame();
+            }
+        }, 300);
+    }, 4500); // Wait 4.5 seconds to read
 }
 
 function endGame() {
@@ -354,7 +438,7 @@ function endGame() {
         screenGame.classList.add('hidden');
         screenEnd.classList.remove('hidden');
 
-        finalScoreEl.textContent = score;
+        document.getElementById('final-stats').textContent = `${questions.length} sorudan ${correctCount} tanesini doğru bildin!`;
         saveScore(playerName, score);
     }, 500);
 }
