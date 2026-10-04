@@ -401,8 +401,9 @@ function loadQuestion() {
             }
         } else {
             // 2 items: Side by side. 
-            // w-[47vw] is the absolute maximum width before horizontal overflow. 
-            cardClass += ' w-[47vw] aspect-video anim-center';
+            // Using a fixed height like 75vh makes the box taller than 16:9.
+            // This forces object-cover to crop the sides, effectively "zooming in" on the details.
+            cardClass += ' w-[47vw] h-[75vh] anim-center';
         }
         
         imgWrapper.className = cardClass;
