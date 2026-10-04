@@ -342,7 +342,8 @@ function loadQuestion() {
 
     // If task is find_fake, we MUST have exactly 1 real and 1 fake. (Total 2 options)
     // If task is find_real, we can have 1 real and 1-2 fakes.
-    const fakeCount = currentTask === "find_fake" ? 1 : (Math.floor(Math.random() * 2) + 1);
+    // To make 3-options overall ~20% likely: 0.75 * 0.27 ≈ 0.20
+    const fakeCount = currentTask === "find_fake" ? 1 : (Math.random() < 0.27 ? 2 : 1);
     
     // Select fakes based on their custom weight probabilities
     let selectedFakes = getWeightedFakes(q.fakes, fakeCount);
