@@ -60,7 +60,10 @@
     </div>
 
     <!-- Screen 2: Game -->
-    <div id="screen-game" class="flex-1 flex flex-col w-full h-full p-6 hidden justify-center">
+    <div id="screen-game" class="flex-1 flex flex-col w-full h-full p-6 hidden justify-center relative">
+        <div id="task-prompt" class="absolute top-8 left-1/2 transform -translate-x-1/2 z-40 bg-slate-800/90 backdrop-blur text-white px-10 py-4 rounded-full text-3xl font-black shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-2 pointer-events-none transition-colors duration-300">
+            Gerçek Görseli Bulun!
+        </div>
         
         <div id="image-grid" class="w-full flex-1 flex flex-row gap-4 p-2 overflow-hidden justify-center items-stretch">
             <!-- Images will be injected here -->
@@ -173,6 +176,7 @@ let totalTimeMs = 0;
 let totalSpeedBonus = 0;
 let correctCount = 0;
 let isAnswered = false;
+let currentTask = "find_real"; // Can be 'find_real' or 'find_fake'
 
 const screenStart = document.getElementById('screen-start');
 const screenGame = document.getElementById('screen-game');
@@ -182,6 +186,7 @@ const btnRestart = document.getElementById('btn-restart');
 const inputName = document.getElementById('player-name');
 const imageGrid = document.getElementById('image-grid');
 const finalScoreEl = document.getElementById('final-score');
+const taskPromptEl = document.getElementById('task-prompt');
 
 // Enforce strict image preloading using Fetch & Blobs to guarantee instant rendering
 let loadedImages = 0;
@@ -298,10 +303,24 @@ function loadQuestion() {
     isAnswered = false;
     const q = questions[currentQuestionIndex];
     
+    // %25 chance to ask for fake, %75 chance to ask for real
+    currentTask = (Math.random() < 0.25) ? "find_fake" : "find_real";
+
+    // Set UI Prompt
+    if (currentTask === "find_fake") {
+        taskPromptEl.textContent = "Yapay Zeka Olanı Seçin!";
+        taskPromptEl.className = "absolute top-8 left-1/2 transform -translate-x-1/2 z-40 bg-red-600/90 backdrop-blur text-white px-10 py-4 rounded-full text-3xl font-black shadow-[0_10px_40px_rgba(220,38,38,0.4)] border-2 border-red-400 pointer-events-none transition-colors duration-300";
+    } else {
+        taskPromptEl.textContent = "Gerçek Olanı Seçin!";
+        taskPromptEl.className = "absolute top-8 left-1/2 transform -translate-x-1/2 z-40 bg-indigo-600/90 backdrop-blur text-white px-10 py-4 rounded-full text-3xl font-black shadow-[0_10px_40px_rgba(79,70,229,0.4)] border-2 border-indigo-400 pointer-events-none transition-colors duration-300";
+    }
+
     let selectedFakes = [...q.fakes];
     shuffleArray(selectedFakes);
-    // Bazen 2, bazen 1 fake seç
-    const fakeCount = Math.floor(Math.random() * 2) + 1; // 1 or 2
+    
+    // If task is find_fake, we MUST have exactly 1 real and 1 fake. (Total 2 options)
+    // If task is find_real, we can have 1 real and 1-2 fakes.
+    const fakeCount = currentTask === "find_fake" ? 1 : (Math.floor(Math.random() * 2) + 1);
     selectedFakes = selectedFakes.slice(0, fakeCount);
 
     const genericCorrects = [
@@ -318,8 +337,20 @@ function loadQuestion() {
         finalCorrectReason = genericCorrects[Math.floor(Math.random() * genericCorrects.length)];
     }
 
-    const options = [{ src: q.real, isReal: true, reason: finalCorrectReason }];
-    selectedFakes.forEach(f => options.push({ src: f.src, isReal: false, reason: f.reason }));
+    const options = [{ 
+        src: q.real, 
+        isReal: true, 
+        reasonForRealClick: finalCorrectReason,
+        reasonForFakeClick: "Yanlış seçim! Bu tamamen orijinal ve gerçek bir fotoğraftı."
+    }];
+    
+    selectedFakes.forEach(f => options.push({ 
+        src: f.src, 
+        isReal: false, 
+        reasonForRealClick: "Yanlış seçim! Bu görsel sahteydi. " + f.reason,
+        reasonForFakeClick: "Tebrikler, sahte görseli buldunuz! " + f.reason
+    }));
+    
     shuffleArray(options);
 
     // Adjust container based on number of options
@@ -363,7 +394,7 @@ function loadQuestion() {
         
         imgWrapper.appendChild(img);
         
-        imgWrapper.addEventListener('click', () => handleAnswer(imgWrapper, opt.isReal, opt.reason));
+        imgWrapper.addEventListener('click', () => handleAnswer(imgWrapper, opt));
         imageGrid.appendChild(imgWrapper);
     });
     
@@ -371,20 +402,21 @@ function loadQuestion() {
     questionStartTime = Date.now();
 }
 
-function handleAnswer(element, isReal, reason) {
+function handleAnswer(element, opt) {
     if (isAnswered) return;
     isAnswered = true;
 
     const timeTakenMs = Date.now() - questionStartTime;
     totalTimeMs += timeTakenMs;
 
-    // Highlight all to show correct/wrong
     const cards = imageGrid.querySelectorAll('.image-card');
     cards.forEach(card => card.style.cursor = 'default');
 
-    if (isReal) {
+    const isCorrect = (currentTask === "find_real" && opt.isReal) || (currentTask === "find_fake" && !opt.isReal);
+
+    if (isCorrect) {
         element.classList.add('correct');
-        score += 100; // Base 100 points
+        score += 100;
         correctCount++;
         
         let bonus = 0;
@@ -398,36 +430,37 @@ function handleAnswer(element, isReal, reason) {
         totalSpeedBonus += bonus;
     } else {
         element.classList.add('wrong');
-        // Find and highlight the real one
         const realImageSrc = questions[currentQuestionIndex].real;
+        
         cards.forEach(card => {
             const img = card.querySelector('img');
-            if (img && img.src.includes(realImageSrc)) {
-                card.classList.add('correct');
+            if (currentTask === "find_real") {
+                if (img && img.src.includes(realImageSrc)) card.classList.add('correct');
+            } else {
+                if (img && !img.src.includes(realImageSrc)) card.classList.add('correct');
             }
         });
     }
 
-    // Show feedback modal
     const modal = document.getElementById('feedback-modal');
     const modalBox = document.getElementById('feedback-box');
     const modalIcon = document.getElementById('feedback-icon');
     const modalTitle = document.getElementById('feedback-title');
     const modalText = document.getElementById('feedback-text');
 
-    if (isReal) {
+    if (isCorrect) {
         modalBox.className = "bg-slate-800 border-l-8 border-green-500 rounded-r-2xl p-10 max-w-4xl text-left shadow-2xl scale-95 transition-transform duration-300 flex flex-col gap-4";
         modalIcon.textContent = "✅";
         modalTitle.textContent = "Doğru!";
         modalTitle.className = "text-4xl font-black text-green-400";
+        modalText.textContent = (currentTask === "find_real") ? opt.reasonForRealClick : opt.reasonForFakeClick;
     } else {
         modalBox.className = "bg-slate-800 border-l-8 border-red-500 rounded-r-2xl p-10 max-w-4xl text-left shadow-2xl scale-95 transition-transform duration-300 flex flex-col gap-4";
         modalIcon.textContent = "❌";
         modalTitle.textContent = "Yanlış!";
         modalTitle.className = "text-4xl font-black text-red-400";
+        modalText.textContent = (currentTask === "find_real") ? opt.reasonForRealClick : opt.reasonForFakeClick;
     }
-
-    modalText.textContent = reason;
     
     modal.classList.remove('hidden');
     // slight delay for opacity transition
