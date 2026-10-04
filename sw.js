@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ai-game-v4';
+const CACHE_NAME = 'ai-game-v5';
 const STATIC_ASSETS = [
     './',
     './index.html',

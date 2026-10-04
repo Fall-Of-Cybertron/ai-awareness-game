@@ -367,16 +367,19 @@ function loadQuestion() {
         let cardClass = 'image-card relative rounded-3xl overflow-hidden border-8 border-transparent flex justify-center items-center shadow-2xl bg-slate-900';
         
         if (options.length === 3) {
-            // Use 16:10 aspect ratio. Much taller than 2:1, so it fills F11 screen nicely without cropping too much horizontally.
-            cardClass += ' w-[47%] aspect-[16/10]';
+            // 3 items: 2 on top, 1 on bottom.
+            // Using aspect-video (16:9) guarantees ZERO cropping for most photos.
+            // w-[42vw] ensures 2 rows (approx 47vw total height) perfectly fit inside 1080p screen without vertical overflow.
+            cardClass += ' w-[42vw] aspect-video';
             if (index === 1) {
                 cardClass += ' anim-top-down';
             } else {
                 cardClass += ' anim-bottom-up';
             }
         } else {
-            // For 2 items: side by side, 72vh is a good balance to avoid extreme horizontal cropping
-            cardClass += ' w-[48%] h-[72vh] anim-center';
+            // 2 items: Side by side. 
+            // w-[47vw] is the absolute maximum width before horizontal overflow. 
+            cardClass += ' w-[47vw] aspect-video anim-center';
         }
         
         imgWrapper.className = cardClass;
