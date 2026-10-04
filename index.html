@@ -363,20 +363,20 @@ function loadQuestion() {
     
     options.forEach((opt, index) => {
         const imgWrapper = document.createElement('div');
-        // Added bg-slate-900 so letterboxing looks like a premium picture frame
-        let cardClass = 'image-card relative rounded-3xl overflow-hidden border-8 border-transparent flex justify-center items-center shadow-2xl bg-slate-900/50';
+        // Revert to old model for no letterboxing
+        let cardClass = 'image-card relative rounded-3xl overflow-hidden border-8 border-transparent flex justify-center items-center shadow-2xl bg-slate-900';
         
         if (options.length === 3) {
-            // For 3 items: 2 on top, 1 on bottom. Fill maximum vertical space available.
-            cardClass += ' w-[48%] h-[42vh]';
+            // Use 16:10 aspect ratio. Much taller than 2:1, so it fills F11 screen nicely without cropping too much horizontally.
+            cardClass += ' w-[47%] aspect-[16/10]';
             if (index === 1) {
                 cardClass += ' anim-top-down';
             } else {
                 cardClass += ' anim-bottom-up';
             }
         } else {
-            // For 2 items: side by side, fill height entirely.
-            cardClass += ' w-[48%] h-[84vh] anim-center';
+            // For 2 items: side by side, 72vh is a good balance to avoid extreme horizontal cropping
+            cardClass += ' w-[48%] h-[72vh] anim-center';
         }
         
         imgWrapper.className = cardClass;
@@ -385,8 +385,12 @@ function loadQuestion() {
         const imgSrc = `images/${opt.src}`;
         img.src = blobCache[imgSrc] || imgSrc; // Use instant RAM blob
         
-        // Using object-contain ensures 100% of the image is always visible, never cropped.
-        img.className = 'object-contain w-full h-full';
+        // Restore custom cropping logic to focus on errors
+        if (opt.src.startsWith('saat')) {
+            img.className = 'object-cover object-right w-full h-full';
+        } else {
+            img.className = 'object-cover object-left w-full h-full';
+        }
         
         img.alt = 'Seçenek';
         img.onerror = function() {
