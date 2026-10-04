@@ -60,12 +60,15 @@
     </div>
 
     <!-- Screen 2: Game -->
-    <div id="screen-game" class="flex-1 flex flex-col w-full h-full p-6 hidden justify-center relative">
-        <div id="task-prompt" class="absolute top-3 left-1/2 transform -translate-x-1/2 z-40 bg-slate-800/90 backdrop-blur text-white px-12 py-2 rounded-full text-xl font-black tracking-[0.2em] shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-2 pointer-events-none transition-colors duration-300">
-            GERÇEK OLANI SEÇİN
+    <div id="screen-game" class="flex-1 flex flex-col w-full h-full p-4 hidden justify-start bg-slate-950">
+        
+        <div class="h-16 flex items-center justify-center shrink-0 w-full z-10 mb-2">
+            <div id="task-prompt" class="bg-slate-800/90 text-white px-12 py-2 rounded-full text-2xl font-black tracking-[0.15em] shadow-[0_10px_40px_rgba(0,0,0,0.5)] border-2">
+                GERÇEK OLANI SEÇİN
+            </div>
         </div>
         
-        <div id="image-grid" class="w-full flex-1 flex flex-row gap-4 p-2 overflow-hidden justify-center items-stretch">
+        <div id="image-grid" class="w-full flex-1 flex flex-wrap justify-center content-center items-center gap-4 p-2 overflow-hidden">
             <!-- Images will be injected here -->
         </div>
     </div>
@@ -309,10 +312,10 @@ function loadQuestion() {
     // Set UI Prompt
     if (currentTask === "find_fake") {
         taskPromptEl.textContent = "YAPAY ZEKA OLANI SEÇİN";
-        taskPromptEl.className = "absolute top-3 left-1/2 transform -translate-x-1/2 z-40 bg-red-600/90 backdrop-blur text-white px-12 py-2 rounded-full text-xl font-black tracking-[0.2em] shadow-[0_10px_40px_rgba(220,38,38,0.4)] border-2 border-red-400 pointer-events-none transition-colors duration-300";
+        taskPromptEl.className = "bg-red-600 text-white px-12 py-2 rounded-full text-2xl font-black tracking-[0.15em] shadow-[0_10px_40px_rgba(220,38,38,0.4)] border-2 border-red-400 pointer-events-none transition-colors duration-300";
     } else {
         taskPromptEl.textContent = "GERÇEK OLANI SEÇİN";
-        taskPromptEl.className = "absolute top-3 left-1/2 transform -translate-x-1/2 z-40 bg-indigo-600/90 backdrop-blur text-white px-12 py-2 rounded-full text-xl font-black tracking-[0.2em] shadow-[0_10px_40px_rgba(79,70,229,0.4)] border-2 border-indigo-400 pointer-events-none transition-colors duration-300";
+        taskPromptEl.className = "bg-indigo-600 text-white px-12 py-2 rounded-full text-2xl font-black tracking-[0.15em] shadow-[0_10px_40px_rgba(79,70,229,0.4)] border-2 border-indigo-400 pointer-events-none transition-colors duration-300";
     }
 
     let selectedFakes = [...q.fakes];
@@ -354,8 +357,7 @@ function loadQuestion() {
     shuffleArray(options);
 
     // Adjust container based on number of options
-    // Use flex-wrap so 3 items will span 2 rows (2 on top, 1 centered on bottom)
-    imageGrid.className = 'w-full flex flex-wrap justify-center content-center items-center gap-6 flex-1 px-4 h-full pb-4';
+    imageGrid.className = 'w-full flex flex-wrap justify-center content-center items-center gap-4 flex-1 h-full';
 
     imageGrid.innerHTML = '';
     
@@ -364,14 +366,16 @@ function loadQuestion() {
         let cardClass = 'image-card relative rounded-3xl overflow-hidden border-8 border-transparent flex justify-center items-center shadow-2xl';
         
         if (options.length === 3) {
-            cardClass += ' aspect-[2/1] w-[46%]';
+            // For 3 items: 2 on top, 1 on bottom. Fill maximum vertical space available.
+            cardClass += ' w-[48%] h-[42vh]';
             if (index === 1) {
                 cardClass += ' anim-top-down';
             } else {
                 cardClass += ' anim-bottom-up';
             }
         } else {
-            cardClass += ' w-[48%] h-[75vh] anim-center';
+            // For 2 items: side by side, fill height entirely.
+            cardClass += ' w-[48%] h-[84vh] anim-center';
         }
         
         imgWrapper.className = cardClass;
