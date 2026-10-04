@@ -412,11 +412,16 @@ function loadQuestion() {
         const imgSrc = `images/${opt.src}`;
         img.src = blobCache[imgSrc] || imgSrc; // Use instant RAM blob
         
-        // Restore custom cropping logic to focus on errors
+        // Custom cropping logic to focus on errors without being too extreme
         if (opt.src.startsWith('saat')) {
-            img.className = 'object-cover object-right w-full h-full';
+            // Shift right, but not 100% right
+            img.className = 'object-cover object-[75%_50%] w-full h-full';
+        } else if (opt.src.startsWith('vali')) {
+            // Leave perfectly centered
+            img.className = 'object-cover object-center w-full h-full';
         } else {
-            img.className = 'object-cover object-left w-full h-full';
+            // Shift left, but not 100% left (so we don't lose too much context)
+            img.className = 'object-cover object-[25%_50%] w-full h-full';
         }
         
         img.alt = 'Seçenek';
